@@ -1,1 +1,829 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>SpeedReader.exe</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&family=VT323&display=swap');
 
+:root{
+  --pink-1:#ff9ed6;
+  --pink-2:#ff4fb0;
+  --pink-3:#c2007a;
+  --pink-4:#7a0044;
+  --window-bg:#ffe6f3;
+  --field-bg:#fff3fa;
+  --button-face:#ffcfe8;
+  --button-hi:#ffe6f5;
+  --button-shadow:#c2007a;
+  --text-dark:#4a0033;
+  --orp-red:#ff0060;
+  --crt-bezel:#f4a8d6;
+  --crt-bezel-dark:#c2007a;
+}
+
+*{box-sizing:border-box;}
+
+body{
+  margin:0;
+  min-height:100vh;
+  background:
+    repeating-linear-gradient(45deg, #ffb3dd 0 4px, #ff9ed0 4px 8px);
+  font-family:'VT323', monospace;
+  color:var(--text-dark);
+  display:flex;
+  align-items:flex-start;
+  justify-content:center;
+  padding:24px 12px;
+}
+
+/* ===== XP WINDOW CHROME ===== */
+.xp-window{
+  width:100%;
+  max-width:920px;
+  background:var(--window-bg);
+  border:3px solid var(--pink-4);
+  border-radius:10px 10px 4px 4px;
+  box-shadow: 4px 4px 0 rgba(122,0,68,0.35), 0 0 0 2px #ffffff inset;
+  overflow:hidden;
+  image-rendering:pixelated;
+}
+
+.title-bar{
+  background:linear-gradient(180deg, var(--pink-1) 0%, var(--pink-2) 45%, var(--pink-3) 100%);
+  padding:6px 8px;
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  border-bottom:2px solid var(--pink-4);
+}
+
+.title-bar-left{
+  display:flex;
+  align-items:center;
+  gap:8px;
+}
+
+.title-icon{
+  width:16px;height:16px;
+  background:
+    linear-gradient(135deg,#fff 0%,#fff 45%, transparent 46%),
+    linear-gradient(315deg,#ff2e93 0%,#ff2e93 45%, transparent 46%);
+  border:1px solid #fff;
+}
+
+.title-text{
+  font-family:'Press Start 2P', monospace;
+  font-size:10px;
+  color:#fff;
+  text-shadow:1px 1px 0 #7a0044;
+  letter-spacing:1px;
+}
+
+.title-buttons{
+  display:flex;
+  gap:4px;
+}
+
+.title-buttons button{
+  width:20px;height:18px;
+  background:var(--button-face);
+  border:1px solid var(--pink-4);
+  border-top-color:#fff;
+  border-left-color:#fff;
+  font-family:'Press Start 2P';
+  font-size:8px;
+  color:var(--pink-4);
+  cursor:pointer;
+  line-height:1;
+}
+.title-buttons button:active{
+  border-color:var(--pink-4);
+  background:var(--pink-1);
+}
+
+.menu-bar{
+  display:flex;
+  gap:16px;
+  background:var(--field-bg);
+  border-bottom:2px solid var(--pink-2);
+  padding:4px 10px;
+  font-size:16px;
+}
+.menu-bar span{cursor:pointer;padding:2px 4px;}
+.menu-bar span:hover{background:var(--pink-2); color:#fff; border-radius:2px;}
+
+/* ===== BODY LAYOUT ===== */
+.xp-body{
+  display:flex;
+  min-height:460px;
+}
+
+.sidebar{
+  width:210px;
+  background:linear-gradient(180deg,#fff0f8,#ffd9ec);
+  border-right:2px solid var(--pink-2);
+  padding:10px;
+}
+
+.sidebar-title{
+  font-family:'Press Start 2P';
+  font-size:9px;
+  color:var(--pink-4);
+  margin-bottom:10px;
+  padding-bottom:6px;
+  border-bottom:2px dashed var(--pink-3);
+}
+
+.level-item{
+  display:flex;
+  align-items:center;
+  gap:8px;
+  padding:6px 8px;
+  margin-bottom:6px;
+  background:var(--field-bg);
+  border:1px solid var(--pink-3);
+  cursor:pointer;
+  font-size:18px;
+  position:relative;
+}
+.level-item:hover{background:#ffe0f0;}
+.level-item.active{
+  background:var(--pink-2);
+  color:#fff;
+  border-color:var(--pink-4);
+}
+.level-item.locked{
+  opacity:0.5;
+  cursor:not-allowed;
+}
+.level-icon{
+  width:14px;height:14px;
+  background:var(--pink-3);
+  border:1px solid var(--pink-4);
+  flex-shrink:0;
+}
+.level-item.active .level-icon{background:#fff;}
+.level-item.done::after{
+  content:"\2714";
+  position:absolute;
+  right:6px;
+  font-size:14px;
+  color:#00a86b;
+}
+.level-item.active.done::after{color:#eaffea;}
+
+.stats-box{
+  margin-top:14px;
+  background:var(--field-bg);
+  border:1px solid var(--pink-3);
+  padding:8px;
+  font-size:16px;
+}
+.stats-box b{font-family:'Press Start 2P'; font-size:8px; display:block; margin-bottom:6px; color:var(--pink-4);}
+
+/* ===== MAIN STAGE ===== */
+.main-stage{
+  flex:1;
+  padding:18px;
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  justify-content:flex-start;
+  gap:16px;
+}
+
+.stage-header{
+  width:100%;
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  font-size:18px;
+}
+.stage-header .badge{
+  font-family:'Press Start 2P';
+  font-size:9px;
+  background:var(--pink-2);
+  color:#fff;
+  padding:5px 8px;
+  border:1px solid var(--pink-4);
+}
+
+/* CRT monitor */
+.crt-frame{
+  width:100%;
+  max-width:640px;
+  background:linear-gradient(180deg, var(--crt-bezel), #ffbfe2);
+  border:4px solid var(--crt-bezel-dark);
+  border-radius:16px;
+  padding:16px;
+  box-shadow: inset 0 0 0 2px #fff, 3px 3px 0 rgba(122,0,68,0.3);
+  position:relative;
+}
+.crt-frame .screw{
+  position:absolute;
+  width:8px;height:8px;
+  border-radius:50%;
+  background:#fff;
+  border:1px solid var(--pink-4);
+}
+.screw.tl{top:8px;left:8px;}
+.screw.tr{top:8px;right:8px;}
+.screw.bl{bottom:8px;left:8px;}
+.screw.br{bottom:8px;right:8px;}
+
+.crt-screen{
+  background:#2b0018;
+  border:3px solid #1a0010;
+  border-radius:6px;
+  height:220px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  position:relative;
+  overflow:hidden;
+  background-image: repeating-linear-gradient(0deg, rgba(255,255,255,0.03) 0px, rgba(255,255,255,0.03) 1px, transparent 1px, transparent 3px);
+}
+
+.led{
+  position:absolute;
+  top:10px; right:14px;
+  width:8px;height:8px;
+  border-radius:50%;
+  background:#ff2e93;
+  box-shadow:0 0 6px 2px #ff2e93;
+  animation:blink 1.4s infinite;
+}
+@keyframes blink{ 0%,100%{opacity:1;} 50%{opacity:0.25;} }
+
+.orp-marker{
+  position:absolute;
+  top:36%;
+  font-size:14px;
+  color:#ff5fb0;
+  z-index:2;
+}
+.orp-top{top:26%;}
+.orp-bottom{top:66%;}
+
+.rsvp-word{
+  display:flex;
+  align-items:baseline;
+  font-family:'VT323', monospace;
+  font-size:52px;
+  color:#ffd7ee;
+  letter-spacing:1px;
+  width:100%;
+  z-index:1;
+}
+.rsvp-left{flex:1; text-align:right; white-space:pre;}
+.rsvp-right{flex:1; text-align:left; white-space:pre;}
+.rsvp-pivot{color:var(--orp-red); font-weight:bold;}
+
+.pre-screen{
+  font-family:'Press Start 2P';
+  font-size:11px;
+  color:#ffbfe0;
+  text-align:center;
+  line-height:2;
+  padding:0 20px;
+}
+.countdown-num{
+  font-family:'Press Start 2P';
+  font-size:40px;
+  color:#ffd7ee;
+}
+
+/* progress bar */
+.progress-track{
+  width:100%;
+  max-width:640px;
+  height:22px;
+  background:var(--field-bg);
+  border:2px solid var(--pink-3);
+  padding:2px;
+}
+.progress-fill{
+  height:100%;
+  width:0%;
+  background:repeating-linear-gradient(90deg, var(--pink-2) 0 8px, var(--pink-1) 8px 16px);
+  transition:width 0.08s linear;
+}
+
+/* controls */
+.controls{
+  display:flex;
+  gap:10px;
+  align-items:center;
+}
+.xp-btn{
+  font-family:'Press Start 2P';
+  font-size:10px;
+  color:var(--text-dark);
+  background:var(--button-face);
+  border:2px solid #fff;
+  border-right-color:var(--pink-4);
+  border-bottom-color:var(--pink-4);
+  padding:8px 14px;
+  cursor:pointer;
+}
+.xp-btn:hover{background:#ffdcee;}
+.xp-btn:active{
+  border-color:var(--pink-4);
+  border-right-color:#fff;
+  border-bottom-color:#fff;
+  background:var(--pink-1);
+}
+.xp-btn:disabled{opacity:0.45; cursor:not-allowed;}
+
+.sound-toggle{
+  display:flex;
+  align-items:center;
+  gap:6px;
+  font-size:16px;
+  cursor:pointer;
+  user-select:none;
+}
+.sound-toggle input{accent-color:var(--pink-3);}
+
+.source-line{
+  font-size:17px;
+  color:var(--pink-4);
+  min-height:22px;
+  text-align:center;
+}
+
+/* status bar */
+.status-bar{
+  border-top:2px solid var(--pink-2);
+  background:var(--field-bg);
+  padding:5px 12px;
+  font-size:15px;
+  display:flex;
+  justify-content:space-between;
+}
+
+/* modal (message box) */
+.overlay{
+  position:fixed; inset:0;
+  background:rgba(122,0,68,0.35);
+  display:none;
+  align-items:center;
+  justify-content:center;
+  z-index:10;
+}
+.overlay.show{display:flex;}
+.msg-box{
+  width:320px;
+  background:var(--window-bg);
+  border:3px solid var(--pink-4);
+  box-shadow:4px 4px 0 rgba(122,0,68,0.35);
+}
+.msg-box .title-bar{padding:5px 8px;}
+.msg-box-body{
+  padding:16px;
+  font-size:19px;
+  text-align:center;
+  line-height:1.5;
+}
+.msg-box-body .big-stat{
+  font-family:'Press Start 2P';
+  font-size:16px;
+  color:var(--pink-3);
+  display:block;
+  margin:10px 0;
+}
+.msg-box-actions{
+  display:flex;
+  justify-content:center;
+  gap:10px;
+  padding:0 16px 16px;
+}
+
+.watermark{
+  position:fixed;
+  bottom:8px;
+  right:12px;
+  font-family:'Press Start 2P', monospace;
+  font-size:9px;
+  color:#fff;
+  background:var(--pink-3);
+  border:1px solid var(--pink-4);
+  padding:4px 7px;
+  opacity:0.85;
+  z-index:5;
+  pointer-events:none;
+}
+</style>
+</head>
+<body>
+
+<div class="xp-window">
+  <div class="title-bar">
+    <div class="title-bar-left">
+      <div class="title-icon"></div>
+      <div class="title-text">SPEEDREADER.EXE</div>
+    </div>
+    <div class="title-buttons">
+      <button title="Minimize" class="sfx-click">_</button>
+      <button title="Maximize" class="sfx-click">&#9633;</button>
+      <button title="Close" id="closeBtn" class="sfx-click">X</button>
+    </div>
+  </div>
+
+  <div class="menu-bar">
+    <span id="helpMenu" class="sfx-click">Help</span>
+    <span id="aboutMenu" class="sfx-click">About</span>
+    <span id="resetMenu" class="sfx-click">Reset Progress</span>
+  </div>
+
+  <div class="xp-body">
+    <div class="sidebar">
+      <div class="sidebar-title">&#9654; TRAINING LEVELS</div>
+      <div id="levelList"></div>
+      <div class="stats-box">
+        <b>SESSION STATS</b>
+        <div>Levels done: <span id="statDone">0</span>/8</div>
+        <div>Current: <span id="statCurrent">250</span> WPM</div>
+        <div>Best cleared: <span id="statBest">-</span> WPM</div>
+      </div>
+    </div>
+
+    <div class="main-stage">
+      <div class="stage-header">
+        <div class="badge" id="levelBadge">LEVEL 1 &middot; 250 WPM</div>
+        <div class="badge" id="wordCountBadge">WORDS 0/0</div>
+      </div>
+
+      <div class="crt-frame">
+        <div class="screw tl"></div><div class="screw tr"></div>
+        <div class="screw bl"></div><div class="screw br"></div>
+        <div class="crt-screen" id="crtScreen">
+          <div class="led"></div>
+          <div class="orp-marker orp-top">&#9660;</div>
+          <div class="orp-marker orp-bottom">&#9650;</div>
+          <div class="pre-screen" id="preScreen">
+            CLICK "START LEVEL"<br>TO BEGIN READING TRAINING
+          </div>
+        </div>
+      </div>
+
+      <div class="progress-track"><div class="progress-fill" id="progressFill"></div></div>
+
+      <div class="controls">
+        <button class="xp-btn sfx-click" id="startBtn">&#9654; Start Level</button>
+        <button class="xp-btn sfx-click" id="pauseBtn" disabled>&#10074;&#10074; Pause</button>
+        <button class="xp-btn sfx-click" id="restartBtn" disabled>&#8635; Restart</button>
+        <label class="sound-toggle"><input type="checkbox" id="soundToggle" checked> Sound</label>
+      </div>
+
+      <div class="source-line" id="sourceLine">&nbsp;</div>
+    </div>
+  </div>
+
+  <div class="status-bar">
+    <span id="statusLeft">Ready</span>
+    <span id="statusRight">Windows XP Reading Trainer &middot; Pink Edition</span>
+  </div>
+</div>
+
+<div class="overlay" id="overlay">
+  <div class="msg-box">
+    <div class="title-bar">
+      <div class="title-bar-left">
+        <div class="title-icon"></div>
+        <div class="title-text" id="msgTitle">SPEEDREADER.EXE</div>
+      </div>
+      <div class="title-buttons"><button id="msgCloseX" class="sfx-click">X</button></div>
+    </div>
+    <div class="msg-box-body" id="msgBody"></div>
+    <div class="msg-box-actions" id="msgActions"></div>
+  </div>
+</div>
+
+<div class="watermark">@paplu</div>
+
+<script>
+(function(){
+
+  /* ========= SOUND EFFECTS (synthesized, no audio files needed) ========= */
+  let audioCtx = null;
+  let soundOn = true;
+
+  function getCtx(){
+    if(!audioCtx){
+      const AC = window.AudioContext || window.webkitAudioContext;
+      audioCtx = new AC();
+    }
+    if(audioCtx.state === 'suspended') audioCtx.resume();
+    return audioCtx;
+  }
+
+  function beep(freq, duration, type, vol, delay){
+    if(!soundOn) return;
+    try{
+      const ctx = getCtx();
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+      osc.type = type || 'square';
+      osc.frequency.value = freq;
+      const startTime = ctx.currentTime + (delay||0);
+      gain.gain.setValueAtTime(vol||0.05, startTime);
+      gain.gain.exponentialRampToValueAtTime(0.0001, startTime + duration);
+      osc.connect(gain).connect(ctx.destination);
+      osc.start(startTime);
+      osc.stop(startTime + duration + 0.02);
+    }catch(e){ /* audio not available, fail silently */ }
+  }
+
+  function playClick(){ beep(880, 0.05, 'square', 0.045, 0); }
+  function playSelect(){ beep(660, 0.07, 'triangle', 0.055, 0); beep(880, 0.06, 'triangle', 0.04, 0.05); }
+  function playLocked(){ beep(160, 0.18, 'sawtooth', 0.05, 0); }
+  function playStart(){ beep(392,0.09,'square',0.05,0); beep(523,0.09,'square',0.05,0.09); beep(659,0.14,'square',0.05,0.18); }
+  function playComplete(){ beep(523,0.12,'square',0.05,0); beep(659,0.12,'square',0.05,0.12); beep(784,0.12,'square',0.05,0.24); beep(1047,0.2,'square',0.06,0.36); }
+
+  document.addEventListener('click', function(e){
+    if(e.target.closest('.sfx-click')) playClick();
+  });
+
+  document.getElementById('soundToggle').addEventListener('change', function(e){
+    soundOn = e.target.checked;
+    if(soundOn) playClick();
+  });
+
+  /* ========= LEVELS & PASSAGES ========= */
+  const LEVELS = [250,300,350,400,450,500,550,600];
+
+  const PASSAGES = [
+    {t:"It is a truth universally acknowledged, that a single man in possession of a good fortune, must be in want of a wife. However little known the feelings or views of such a man may be on his first entering a neighbourhood, this truth is so well fixed in the minds of the surrounding families.", s:"Jane Austen, Pride and Prejudice"},
+    {t:"Call me Ishmael. Some years ago, never mind how long precisely, having little or no money in my purse, and nothing particular to interest me on shore, I thought I would sail about a little and see the watery part of the world. It is a way I have of driving off the spleen.", s:"Herman Melville, Moby Dick"},
+    {t:"It was the best of times, it was the worst of times, it was the age of wisdom, it was the age of foolishness, it was the epoch of belief, it was the epoch of incredulity, it was the season of Light, it was the season of Darkness, it was the spring of hope.", s:"Charles Dickens, A Tale of Two Cities"},
+    {t:"All happy families are alike; each unhappy family is unhappy in its own way. Everything was in confusion in the Oblonskys' house. The wife had discovered that the husband was carrying on an affair, and she had announced to her husband that she could not go on living in the same house with him.", s:"Leo Tolstoy, Anna Karenina"},
+    {t:"Alice was beginning to get very tired of sitting by her sister on the bank, and of having nothing to do: once or twice she had peeped into the book her sister was reading, but it had no pictures or conversations in it, and what is the use of a book, thought Alice, without pictures.", s:"Lewis Carroll, Alice's Adventures in Wonderland"},
+    {t:"I am by birth a Genevese, and my family is one of the most distinguished of that republic. My ancestors had been for many years counsellors and syndics, and my father had filled several public situations with honour and reputation. He was respected by all who knew him for his integrity.", s:"Mary Shelley, Frankenstein"},
+    {t:"In my younger and more vulnerable years my father gave me some advice that I have been turning over in my mind ever since. Whenever you feel like criticizing any one, he told me, just remember that all the people in this world have not had the advantages that you have had.", s:"F. Scott Fitzgerald, The Great Gatsby"},
+    {t:"Happiness can be found even in the darkest of times, if one only remembers to turn on the light. It is our choices that show what we truly are, far more than our abilities. Not all those who wander are lost, and not all magic can be undone once it has been set loose.", s:"J.K. Rowling, Harry Potter"},
+    {t:"Two roads diverged in a wood, and I, I took the one less traveled by, and that has made all the difference. In three words I can sum up everything I have learned about life: it goes on. It does not matter how slowly you go as long as you do not stop.", s:"Robert Frost"},
+    {t:"Albert Einstein was offered the presidency of Israel in 1952, but he turned the position down, explaining that he lacked both the natural aptitude and the experience to deal with people in the way the role would require. He continued working on physics until his death, still searching for a theory to unite gravity with the other forces of nature.", s:"Fact: Albert Einstein"},
+    {t:"Marie Curie remains the only person in history to win Nobel Prizes in two different sciences, physics and chemistry. She carried out much of her early research in a converted shed with poor ventilation, and she carted heavy pitchblende ore herself to extract the radium and polonium she eventually discovered. Her notebooks are still considered too radioactive to handle safely today.", s:"Fact: Marie Curie"},
+    {t:"Leonardo da Vinci filled thousands of notebook pages with sketches, inventions, and observations, much of it written in mirror script that moved from right to left across the page. He designed flying machines, armored vehicles, and diving equipment centuries before the technology existed to build them, and many of his ideas were only rediscovered hundreds of years later.", s:"Fact: Leonardo da Vinci"},
+    {t:"Isaac Newton developed much of his early work on calculus, optics, and gravity during 1665 and 1666, while Cambridge University was closed because of an outbreak of plague sweeping through England. He later referred to this period at his family home as the most productive of his entire life, even though he was still in his early twenties at the time.", s:"Fact: Isaac Newton"},
+    {t:"Nikola Tesla claimed he could design and test an entire invention inside his own mind before ever touching a single tool, running it mentally for weeks to check for flaws. He held hundreds of patents across his lifetime and pioneered the alternating current systems that still power homes and cities around the world today.", s:"Fact: Nikola Tesla"},
+    {t:"Maya Angelou worked as a streetcar conductor, a cook, a cabaret dancer, and a journalist in Africa long before she became one of the most celebrated poets and memoirists of her century. She did not speak for nearly five years as a child after a traumatic event, and she later said that reading is what gave her voice back to her.", s:"Fact: Maya Angelou"},
+    {t:"Charles Darwin waited more than twenty years after returning from his voyage on the Beagle before he finally published On the Origin of Species, fearing the controversy his theory of evolution would cause among both scientists and the public. He was finally pushed to release his work after learning that another naturalist had independently arrived at a strikingly similar idea.", s:"Fact: Charles Darwin"},
+    {t:"Amelia Earhart set a women's altitude record for flight years before she attempted her famous solo transatlantic crossing in 1932. She vanished during an attempt to fly around the world in 1937, and despite decades of searches, expeditions, and investigations, the exact fate of her aircraft has never been conclusively determined by historians.", s:"Fact: Amelia Earhart"},
+    {t:"William Shakespeare is credited with inventing or popularizing hundreds of English words and phrases that people still use every single day, including words like eyeball, lonely, and bedroom. He wrote at least thirty seven plays and over a hundred and fifty sonnets, yet very few reliable details about his actual daily life have survived to the present day.", s:"Fact: William Shakespeare"},
+    {t:"Thomas Edison held over a thousand patents in the United States alone, more than almost anyone else in American history. He famously said that he had not failed but had simply found thousands of ways that would not work, a philosophy he applied while testing thousands of filament materials before finally perfecting the practical light bulb.", s:"Fact: Thomas Edison"},
+    {t:"Vincent van Gogh sold only a single painting during his entire lifetime, yet today his canvases sell for some of the highest prices ever recorded at auction. He produced more than two thousand artworks in just over a decade, often completing a new painting every single day during his most productive periods in the south of France.", s:"Fact: Vincent van Gogh"},
+    {t:"Winston Churchill was repeatedly passed over for promotion as a young army officer and later suffered a string of political defeats that many assumed had ended his career for good. He returned to lead Britain through its darkest hour, insisting that success is never final and failure is never fatal, only the courage to continue really counts.", s:"Fact: Winston Churchill"},
+    {t:"The Wright brothers ran a small bicycle repair and manufacturing shop in Dayton, Ohio, using the profits and mechanical knowledge from that business to fund years of quiet experiments with kites and gliders. Neither brother had any formal engineering education, yet they achieved the first sustained, controlled, powered flight in human history in December of 1903.", s:"Fact: The Wright Brothers"},
+    {t:"Ludwig van Beethoven continued composing some of his most celebrated symphonies even after he had lost almost all of his hearing, reportedly sawing the legs off his piano so he could feel the vibrations of the notes through the floor. Some music historians consider his later, completely deaf period to be the most innovative and daring of his entire career.", s:"Fact: Ludwig van Beethoven"},
+    {t:"Agatha Christie once disappeared for eleven days in December of 1926, sparking a massive nationwide search involving thousands of police officers and volunteers. She was eventually found registered at a hotel under a different name, and to this day nobody knows for certain exactly why she vanished or where she had truly been.", s:"Fact: Agatha Christie"},
+    {t:"Cleopatra lived closer in time to the moon landing than she did to the construction of the Great Pyramid of Giza, since the pyramid was already roughly two thousand five hundred years old by the time she was born in Egypt. She spoke numerous languages fluently and was known for her intelligence as much as her legendary charm.", s:"Fact: Cleopatra"},
+    {t:"Mahatma Gandhi trained as a lawyer in London and worked for years in South Africa before he ever returned home to India, where the discrimination he experienced abroad shaped the philosophy of nonviolent resistance he would later use to lead an entire nation toward independence from British colonial rule.", s:"Fact: Mahatma Gandhi"}
+  ];
+
+  function wordCount(p){ return p.t.split(/\s+/).length; }
+
+  let usedIndexes = [];
+  function pickPassage(levelIndex){
+    const minWords = 40 + levelIndex * 8;
+    let pool = PASSAGES.map((p,i)=>({p,i})).filter(x => wordCount(x.p) >= minWords);
+    if(pool.length === 0) pool = PASSAGES.map((p,i)=>({p,i}));
+    let notUsed = pool.filter(x => !usedIndexes.includes(x.i));
+    if(notUsed.length === 0){ usedIndexes = []; notUsed = pool; }
+    const choice = notUsed[Math.floor(Math.random()*notUsed.length)];
+    usedIndexes.push(choice.i);
+    return choice.p;
+  }
+
+  let currentLevel = 0;
+  let unlockedLevel = 0;
+  let completedLevels = new Set();
+  let words = [];
+  let wordIdx = 0;
+  let timerId = null;
+  let paused = false;
+  let currentPassage = null;
+
+  const levelListEl = document.getElementById('levelList');
+  const levelBadge = document.getElementById('levelBadge');
+  const wordCountBadge = document.getElementById('wordCountBadge');
+  const preScreen = document.getElementById('preScreen');
+  const crtScreen = document.getElementById('crtScreen');
+  const progressFill = document.getElementById('progressFill');
+  const startBtn = document.getElementById('startBtn');
+  const pauseBtn = document.getElementById('pauseBtn');
+  const restartBtn = document.getElementById('restartBtn');
+  const sourceLine = document.getElementById('sourceLine');
+  const statusLeft = document.getElementById('statusLeft');
+  const statDone = document.getElementById('statDone');
+  const statCurrent = document.getElementById('statCurrent');
+  const statBest = document.getElementById('statBest');
+  const overlay = document.getElementById('overlay');
+  const msgBody = document.getElementById('msgBody');
+  const msgActions = document.getElementById('msgActions');
+  const msgTitle = document.getElementById('msgTitle');
+
+  function renderSidebar(){
+    levelListEl.innerHTML = '';
+    LEVELS.forEach((wpm, i)=>{
+      const div = document.createElement('div');
+      div.className = 'level-item' + (i===currentLevel?' active':'') + (i>unlockedLevel?' locked':'') + (completedLevels.has(i)?' done':'');
+      div.innerHTML = '<div class="level-icon"></div><span>Level '+(i+1)+' &middot; '+wpm+' WPM</span>';
+      div.addEventListener('click', ()=>{
+        if(i<=unlockedLevel){ playSelect(); selectLevel(i); }
+        else { playLocked(); statusLeft.textContent = 'Level locked - finish level '+(unlockedLevel+1)+' first.'; }
+      });
+      levelListEl.appendChild(div);
+    });
+    statDone.textContent = completedLevels.size;
+    statCurrent.textContent = LEVELS[currentLevel];
+    statBest.textContent = completedLevels.size ? LEVELS[Math.max(...completedLevels)] : '-';
+  }
+
+  function selectLevel(i){
+    stopReading();
+    currentLevel = i;
+    levelBadge.textContent = 'LEVEL '+(i+1)+' \u00B7 '+LEVELS[i]+' WPM';
+    crtScreen.innerHTML = '<div class="led"></div><div class="orp-marker orp-top">&#9660;</div><div class="orp-marker orp-bottom">&#9650;</div><div class="pre-screen" id="preScreen">CLICK "START LEVEL"<br>TO BEGIN READING TRAINING</div>';
+    progressFill.style.width = '0%';
+    wordCountBadge.textContent = 'WORDS 0/0';
+    sourceLine.innerHTML = '&nbsp;';
+    startBtn.disabled = false;
+    pauseBtn.disabled = true;
+    restartBtn.disabled = true;
+    statusLeft.textContent = 'Ready';
+    renderSidebar();
+  }
+
+  function getPivotIndex(word){
+    const len = word.length;
+    if(len<=1) return 0;
+    if(len<=5) return 1;
+    if(len<=9) return 2;
+    if(len<=12) return 3;
+    return 4;
+  }
+
+  function renderWord(word){
+    const pivot = getPivotIndex(word);
+    const left = word.slice(0,pivot);
+    const pivotChar = word.charAt(pivot) || '';
+    const right = word.slice(pivot+1);
+    crtScreen.innerHTML =
+      '<div class="led"></div>'+
+      '<div class="orp-marker orp-top">&#9660;</div>'+
+      '<div class="orp-marker orp-bottom">&#9650;</div>'+
+      '<div class="rsvp-word">'+
+        '<span class="rsvp-left">'+left+'</span>'+
+        '<span class="rsvp-pivot">'+pivotChar+'</span>'+
+        '<span class="rsvp-right">'+right+'</span>'+
+      '</div>';
+  }
+
+  function startLevel(){
+    playStart();
+    currentPassage = pickPassage(currentLevel);
+    words = currentPassage.t.split(/\s+/);
+    wordIdx = 0;
+    paused = false;
+    startBtn.disabled = true;
+    pauseBtn.disabled = false;
+    pauseBtn.textContent = '\u2759\u2759 Pause';
+    restartBtn.disabled = false;
+    sourceLine.innerHTML = '&nbsp;';
+    wordCountBadge.textContent = 'WORDS 0/'+words.length;
+    statusLeft.textContent = 'Get ready...';
+    runCountdown(3);
+  }
+
+  function runCountdown(n){
+    if(n<=0){
+      statusLeft.textContent = 'Reading at '+LEVELS[currentLevel]+' WPM';
+      scheduleNext();
+      return;
+    }
+    crtScreen.innerHTML = '<div class="led"></div><div class="countdown-num">'+n+'</div>';
+    timerId = setTimeout(()=>runCountdown(n-1), 700);
+  }
+
+  function scheduleNext(){
+    if(paused) return;
+    if(wordIdx >= words.length){
+      finishLevel();
+      return;
+    }
+    renderWord(words[wordIdx]);
+    wordIdx++;
+    wordCountBadge.textContent = 'WORDS '+wordIdx+'/'+words.length;
+    progressFill.style.width = Math.round((wordIdx/words.length)*100)+'%';
+    const interval = 60000 / LEVELS[currentLevel];
+    timerId = setTimeout(scheduleNext, interval);
+  }
+
+  function togglePause(){
+    if(!words.length) return;
+    paused = !paused;
+    if(paused){
+      clearTimeout(timerId);
+      pauseBtn.textContent = '\u25B6 Resume';
+      statusLeft.textContent = 'Paused';
+    } else {
+      pauseBtn.textContent = '\u2759\u2759 Pause';
+      statusLeft.textContent = 'Reading at '+LEVELS[currentLevel]+' WPM';
+      scheduleNext();
+    }
+  }
+
+  function stopReading(){
+    clearTimeout(timerId);
+    paused = false;
+  }
+
+  function finishLevel(){
+    stopReading();
+    playComplete();
+    completedLevels.add(currentLevel);
+    if(currentLevel === unlockedLevel && unlockedLevel < LEVELS.length-1){
+      unlockedLevel++;
+    }
+    crtScreen.innerHTML = '<div class="led"></div><div class="pre-screen">PASSAGE COMPLETE!</div>';
+    sourceLine.textContent = '\u2014 ' + currentPassage.s;
+    startBtn.disabled = false;
+    pauseBtn.disabled = true;
+    statusLeft.textContent = 'Level complete';
+    renderSidebar();
+    showLevelCompleteDialog();
+  }
+
+  function showLevelCompleteDialog(){
+    const hasNext = currentLevel < LEVELS.length-1;
+    msgTitle.textContent = 'LEVEL COMPLETE';
+    msgBody.innerHTML = 'You read '+words.length+' words at<span class="big-stat">'+LEVELS[currentLevel]+' WPM</span>'+
+      (hasNext ? 'Level '+(currentLevel+2)+' ('+LEVELS[currentLevel+1]+' WPM) is now unlocked.' : 'You have cleared the fastest level. Nicely done!');
+    msgActions.innerHTML = '';
+    const okBtn = document.createElement('button');
+    okBtn.className = 'xp-btn sfx-click';
+    okBtn.textContent = 'OK';
+    okBtn.onclick = closeOverlay;
+    msgActions.appendChild(okBtn);
+    if(hasNext){
+      const nextBtn = document.createElement('button');
+      nextBtn.className = 'xp-btn sfx-click';
+      nextBtn.textContent = 'Next Level \u25B6';
+      nextBtn.onclick = ()=>{ closeOverlay(); selectLevel(currentLevel+1); };
+      msgActions.appendChild(nextBtn);
+    }
+    overlay.classList.add('show');
+  }
+
+  function closeOverlay(){ overlay.classList.remove('show'); }
+
+  function restartLevel(){
+    stopReading();
+    startLevel();
+  }
+
+  startBtn.addEventListener('click', startLevel);
+  pauseBtn.addEventListener('click', togglePause);
+  restartBtn.addEventListener('click', restartLevel);
+  document.getElementById('msgCloseX').addEventListener('click', closeOverlay);
+
+  document.getElementById('helpMenu').addEventListener('click', ()=>{
+    msgTitle.textContent = 'HELP';
+    msgBody.innerHTML = 'Pick a level in the sidebar, press Start, and read the highlighted red letter as it flashes in the center of the screen. Finish a passage to unlock the next 50 WPM level, all the way up to 600 WPM.';
+    msgActions.innerHTML = '<button class="xp-btn sfx-click" id="helpOk">OK</button>';
+    overlay.classList.add('show');
+    document.getElementById('helpOk').onclick = closeOverlay;
+  });
+
+  document.getElementById('aboutMenu').addEventListener('click', ()=>{
+    msgTitle.textContent = 'ABOUT';
+    msgBody.innerHTML = 'SpeedReader.exe<br>Pink Edition<br><br>A Windows XP styled reading speed trainer, from 250 to 600 words per minute.';
+    msgActions.innerHTML = '<button class="xp-btn sfx-click" id="aboutOk">OK</button>';
+    overlay.classList.add('show');
+    document.getElementById('aboutOk').onclick = closeOverlay;
+  });
+
+  document.getElementById('resetMenu').addEventListener('click', ()=>{
+    stopReading();
+    unlockedLevel = 0;
+    completedLevels = new Set();
+    selectLevel(0);
+  });
+
+  document.getElementById('closeBtn').addEventListener('click', ()=>{
+    msgTitle.textContent = 'SPEEDREADER.EXE';
+    msgBody.innerHTML = 'This window cannot be closed. Keep training!';
+    msgActions.innerHTML = '<button class="xp-btn sfx-click" id="closeOk">OK</button>';
+    overlay.classList.add('show');
+    document.getElementById('closeOk').onclick = closeOverlay;
+  });
+
+  renderSidebar();
+  selectLevel(0);
+})();
+</script>
+</body>
+</html>
